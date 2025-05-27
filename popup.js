@@ -591,11 +591,12 @@ function fillMarksOnPage(data) {
     
     if (totalColumns.length === 0) {
       throw new Error("Could not find any 'Total' column in the Excel file");
-    } else if (totalColumns.length === 1) {
+    } else{
       totalColumnIndex = totalColumns[0];
-    } else {
-      totalColumnIndex = totalColumns[1]; 
-    }
+    } 
+    // else {
+    //   totalColumnIndex = totalColumns[1]; 
+    // }
     
     const studentDataStartIndex = headerRowIndex + 2;
     const studentData = data.slice(studentDataStartIndex);
