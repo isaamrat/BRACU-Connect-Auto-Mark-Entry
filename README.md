@@ -1,5 +1,5 @@
 
-# BRACU Connect Auto Marks Input Extension
+# BRACU Connect Auto Mark Entry - Extension
 
 A Chrome extension that automatically fills student marks in BRACU Connect Final Mark Entry system by importing data from Excel files.
 
