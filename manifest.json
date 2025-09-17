@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BRACU Connect Auto Mark Entry",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Auto fill student marks from Final GradeSheet XLSX file into BRACU Connect Final Mark Entry form fields",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": ["<all_urls>"],
