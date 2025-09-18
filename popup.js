@@ -121,44 +121,6 @@ function resetFileUploadDisplay() {
   fileUploadText.innerHTML = `<span class="file-upload-icon">📁</span><span>Choose Excel file or drag and drop</span>`;
 }
 
-// fillBtn.addEventListener("click", async () => {
-//   if (studentData.length === 0) {
-//     showMessage("Please select an Excel file first.", "error");
-//     return;
-//   }
-
-//   if (isProcessing) return;
-
-//   try {
-//     setButtonLoading(true);
-
-//     const results = await chrome.scripting.executeScript({
-//       target: { tabId: (await chrome.tabs.query({ active: true, currentWindow: true }))[0].id },
-//       function: fillMarksOnPage,
-//       args: [studentData]
-//     });
-
-//     const { unmatchedStudents, totalStudents, matchedCount } = results[0].result;
-
-//     if (unmatchedStudents.length === totalStudents && totalStudents > 0) {
-//       showMessage("No students were matched! Please verify that your Excel file course and section match the BRACU Connect Mark Entry page course and section.", "error");
-//       displayUnmatchedStudents(unmatchedStudents);
-//       return;
-//     }
-
-//     displayUnmatchedStudents(unmatchedStudents);
-
-//     if (unmatchedStudents.length === 0) {
-//       showMessage(`All ${matchedCount} student marks filled successfully! 🎉`, "success");
-//     } else {
-//       showMessage(`${matchedCount} student marks filled successfully. ${unmatchedStudents.length} students could not be matched.`, "warning");
-//     }
-//   } catch (error) {
-//     showMessage("Error accessing the current tab. Please ensure you're on the correct BRACU Connect page and try again.", "error");
-//   } finally {
-//     setButtonLoading(false);
-//   }
-// });
 
 fillBtn.addEventListener("click", async () => {
   if (studentData.length === 0) {
@@ -957,5 +919,6 @@ function fillMarksOnPage(data) {
     return { unmatchedStudents: [], pageOnlyStudents: [], totalStudents: 0, matchedCount: 0 };
   }
 }
+
 
 
