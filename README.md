@@ -3,6 +3,8 @@
 
 A Chrome extension that automatically fills student marks in BRACU Connect Final Mark Entry system by importing data from Excel files.
 
+## [Linux version for chrome](https://github.com/isaamrat/BRACU-Connect-Auto-Mark-Entry/tree/linux-chrome)
+
 ## Features
 
 - **Smart Page Detection**: Only works on BRACU Connect Final Mark Entry pages
