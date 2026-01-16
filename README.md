@@ -10,6 +10,7 @@ A Chrome extension that automatically fills student marks in BRACU Connect Final
 - **Smart Page Detection**: Only works on BRACU Connect Final Mark Entry pages
 - **Excel Import**: Upload .xlsx files with student marks
 - **Automatic Matching**: Matches students by ID and fills marks instantly  
+- **Automatic Absent Detection**: Matches students who are absent from gradesheet field "Absent" or "NULL"
 - **Error Reporting**: Shows unmatched students and validation errors
 - **Visual Feedback**: Highlights successfully filled fields
 
