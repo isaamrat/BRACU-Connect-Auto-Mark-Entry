@@ -8,12 +8,26 @@ function showFillButton() { fillBtn.style.display = ''; } // reset to default
 const fileSuccess = document.getElementById("fileSuccess");
 const btnText = fillBtn.querySelector('.btn-text');
 const pageVerification = document.getElementById("pageVerification");
-const uploadSection = document.getElementById("uploadSection");
-const fileUploadDisplay = document.getElementById("fileUploadDisplay");
 const fileUploadText = document.getElementById("fileUploadText");
+const rawMarkChip = document.getElementById('rawMarkChip');
+const roundedMarkChip = document.getElementById('roundedMarkChip');
+const markTypeContainer = document.getElementById('markTypeContainer');
 
 let studentData = [];
 let isProcessing = false;
+let selectedMarkIndex = 0;
+
+rawMarkChip.addEventListener('click', () => {
+  selectedMarkIndex = 0;
+  rawMarkChip.classList.add('active');
+  roundedMarkChip.classList.remove('active');
+});
+
+roundedMarkChip.addEventListener('click', () => {
+  selectedMarkIndex = 1;
+  roundedMarkChip.classList.add('active');
+  rawMarkChip.classList.remove('active');
+});
 
 document.addEventListener('DOMContentLoaded', async () => {
   await verifyCurrentPage();
@@ -58,11 +72,20 @@ function showPageVerificationError() {
   pageVerification.classList.add('show');
 }
 
+function showMarkTypeContainer() {
+  markTypeContainer.style.display = 'block';
+}
+
+function hideMarkTypeContainer() {
+  markTypeContainer.style.display = 'none';
+}
+
 fileInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (!file) {
     resetFileUploadDisplay();
     hideFileSuccess();
+    hideMarkTypeContainer();
     return;
   }
 
@@ -85,6 +108,7 @@ fileInput.addEventListener("change", (e) => {
         showMessage("Sheet 'Final GradeSheet' not found in the Excel file. Please ensure your Excel file contains the correct sheet name.", "error");
         resetFileUploadDisplay();
         hideFileSuccess();
+        hideMarkTypeContainer();
         return;
       }
 
@@ -93,12 +117,14 @@ fileInput.addEventListener("change", (e) => {
 
       showMessage(`Excel file loaded successfully`, "success");
       showFileSuccess();
+      showMarkTypeContainer();
       clearUnmatchedStudents();
       showFillButton();
     } catch (error) {
       showMessage("Error reading the Excel file. Please check the file format and try again.", "error");
       resetFileUploadDisplay();
       hideFileSuccess();
+      hideMarkTypeContainer();
     }
   };
 
@@ -106,6 +132,7 @@ fileInput.addEventListener("change", (e) => {
     showMessage("Failed to read the file. Please try again with a different file.", "error");
     resetFileUploadDisplay();
     hideFileSuccess();
+    hideMarkTypeContainer();
   };
 
   reader.readAsArrayBuffer(file);
@@ -118,7 +145,7 @@ function updateFileUploadDisplay(fileName) {
 
 function resetFileUploadDisplay() {
   fileUploadDisplay.classList.remove('has-file');
-  fileUploadText.innerHTML = `<span class="file-upload-icon">📁</span><span>Choose Excel file or drag and drop</span>`;
+  fileUploadText.innerHTML = `<span class="file-upload-icon">📁</span><span>Choose Grade Sheet Excel file</span>`;
 }
 
 
@@ -136,12 +163,13 @@ fillBtn.addEventListener("click", async () => {
     const results = await chrome.scripting.executeScript({
       target: { tabId: (await chrome.tabs.query({ active: true, currentWindow: true }))[0].id },
       function: fillMarksOnPage,
-      args: [studentData]
+      args: [studentData, selectedMarkIndex]
     });
 
-    const { unmatchedStudents, pageOnlyStudents, totalStudents, matchedCount } = results[0].result;
+    const { unmatchedStudents, pageOnlyStudents, totalStudents, marksEnteredCount, absentCount } = results[0].result;
+    const totalMatched = marksEnteredCount + absentCount;
 
-    if (matchedCount > 0) {
+    if (totalMatched > 0) {
       hideFillButton();
     }
 
@@ -155,13 +183,19 @@ fillBtn.addEventListener("click", async () => {
 
     // Summary message
     const parts = [];
-    parts.push(`${matchedCount} matched & filled`);
-    if (unmatchedStudents.length) parts.push(`${unmatchedStudents.length} in Excel not on page`);
-    if (pageOnlyStudents.length) parts.push(`${pageOnlyStudents.length} on page not in Excel`);
+    if (marksEnteredCount > 0) parts.push(`${marksEnteredCount} Marks`);
+    if (absentCount > 0) parts.push(`${absentCount} Absent`);
+    if (unmatchedStudents.length) parts.push(`${unmatchedStudents.length} Missing`);
+    if (pageOnlyStudents.length) parts.push(`${pageOnlyStudents.length} Extras`);
+
     const msg = parts.join(" · ");
 
     if (unmatchedStudents.length === 0 && pageOnlyStudents.length === 0) {
-      showMessage(`All ${matchedCount} students matched successfully! 🎉`, "success");
+      const successParts = [];
+      if (marksEnteredCount > 0) successParts.push(`${marksEnteredCount} marks`);
+      if (absentCount > 0) successParts.push(`${absentCount} absences`);
+      const successDetail = successParts.join(" and ");
+      showMessage(`All students matched! (${successDetail}) 🎉`, "success");
     } else {
       showMessage(msg, "warning");
     }
@@ -592,7 +626,7 @@ function clearUnmatchedStudents() {
 
 
 
-function fillMarksOnPage(data) {
+async function fillMarksOnPage(data, selectedMarkIndex = 0) {
   try {
     if (!data || data.length < 2) throw new Error("Excel data must have at least 2 rows");
 
@@ -628,7 +662,10 @@ function fillMarksOnPage(data) {
       if (h && String(h).trim().toLowerCase() === 'final') finalColumnIndex = i;
     }
     if (totalColumns.length === 0) throw new Error("Could not find any 'Total' column in the Excel file");
-    totalColumnIndex = totalColumns[0];
+
+    // Pick the column based on user selection (Raw = index 0, Rounded = index 1)
+    // If only one Total column exists, it will naturally pick the first one regardless.
+    totalColumnIndex = totalColumns[Math.min(selectedMarkIndex, totalColumns.length - 1)];
 
     if (finalColumnIndex === -1) {
       for (let i = 0; i < headerRow.length; i++) {
@@ -760,7 +797,7 @@ function fillMarksOnPage(data) {
         const finalCell = row[finalColumnIndex];
         if (finalCell != null && typeof finalCell !== 'number') {
           const txt = String(finalCell).toLowerCase();
-          if (txt.includes('absent') || txt === 'a' || txt === 'abs') isAbsent = true;
+          if (txt.includes('absent') || txt === 'null' || txt === 'abs' || txt === 'a' || txt === 'na' || txt === 'nan') isAbsent = true;
         }
       }
 
@@ -846,8 +883,8 @@ function fillMarksOnPage(data) {
 
     // ---------- Match & fill per-student ----------
     const unmatchedStudents = [];   // in Excel, not on page
-    let matchedCount = 0;
-    const setStatusQueue = [];
+    let marksEnteredCount = 0;
+    let absentCount = 0;
 
 
     for (const rec of excelById.values()) {
@@ -859,9 +896,10 @@ function fillMarksOnPage(data) {
       if (pageRow) {
         if (rec.isAbsent) {
           // Set status to Absent and DO NOT touch marks
-          setStatusQueue.push(setStatusAbsent(pageRow.root));
+          await setStatusAbsent(pageRow.root);
           // no matchedCount++ because we didn't fill marks
           colorRow(pageRow.root, '#fff7ed');   // orangy yellow
+          absentCount++;
 
         } else if (!isEffectivelyDisabled(pageRow.marksInput)) {
           // Only fill if the marks input is not disabled/readonly
@@ -879,8 +917,7 @@ function fillMarksOnPage(data) {
 
           colorRow(pageRow.root, '#dcfce7');   // same green as marks field
 
-
-          matchedCount++;
+          marksEnteredCount++;
         }
         // else: input disabled → skip
       } else {
@@ -891,9 +928,6 @@ function fillMarksOnPage(data) {
 
 
 
-    if (setStatusQueue.length) {
-      Promise.allSettled(setStatusQueue).catch(() => { });
-    }
 
     // ---------- NEW: students on page but not in Excel ----------
     const excelIds = new Set(excelById.keys());
@@ -911,12 +945,13 @@ function fillMarksOnPage(data) {
       unmatchedStudents,           // Excel -> not on page
       pageOnlyStudents,            // Page -> not in Excel
       totalStudents: studentRows.filter(x => x && x.length).length,
-      matchedCount
+      marksEnteredCount,
+      absentCount
     };
 
   } catch (error) {
     console.error("Error processing Excel data:", error);
-    return { unmatchedStudents: [], pageOnlyStudents: [], totalStudents: 0, matchedCount: 0 };
+    return { unmatchedStudents: [], pageOnlyStudents: [], totalStudents: 0, marksEnteredCount: 0, absentCount: 0 };
   }
 }
 

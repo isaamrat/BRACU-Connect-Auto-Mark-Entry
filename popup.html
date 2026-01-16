@@ -368,6 +368,57 @@
       display: block;
     }
 
+    /* Mark Type Chips */
+    .mark-type-container {
+      margin: 12px 0;
+      text-align: center;
+      display: none;
+    }
+
+    .mark-type-container .form-label {
+      text-align: center;
+    }
+
+    .chip-group {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      justify-content: center;
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      user-select: none;
+    }
+
+    .chip:hover {
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    .chip.active {
+      background: #dbeafe;
+      color: #2563eb;
+      border-color: #93c5fd;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .chip.active::before {
+      content: '●';
+      font-size: 8px;
+    }
+
     /* Responsive design */
     @media (max-width: 480px) {
       body {
@@ -421,7 +472,7 @@
           <div class="file-upload-display" id="fileUploadDisplay">
             <div class="file-upload-text">
               <span class="file-upload-icon">📁</span>
-              <span id="fileUploadText">Choose Excel file or drag and drop</span>
+              <span id="fileUploadText">Choose Grade Sheet Excel file</span>
             </div>
           </div>
         </div>
@@ -430,10 +481,22 @@
         </div>
       </div>
 
+      <div class="mark-type-container" id="markTypeContainer">
+        <label class="form-label">Mark To Entry</label>
+        <div class="chip-group">
+          <div class="chip active" id="rawMarkChip" data-index="0">
+            Raw Mark
+          </div>
+          <div class="chip" id="roundedMarkChip" data-index="1">
+            Rounded Mark
+          </div>
+        </div>
+      </div>
+
       <button class="btn-primary" id="fillBtn">
         <span class="btn-text">Fill Marks</span>
       </button>
-      
+
     </div>
   </div>
 
