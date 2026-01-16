@@ -1,40 +1,25 @@
 {
-  "manifest_version": 3,
-  "name": "BRACU Connect Auto Mark Linux",
-  "version": "1.1",
-  "description": "Auto fill student marks from Final GradeSheet XLSX file into BRACU Connect Final Mark Entry form fields",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "tabs",
-    "sidePanel"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "action": {
-    "default_icon": {
-      "16": "icons/auto_mark.png",
-      "48": "icons/auto_mark.png",
-      "128": "icons/auto_mark.png"
+    "manifest_version": 3,
+    "name": "BRACU Connect Auto Mark Entry (Side Panel)",
+    "version": "1.2",
+    "description": "Side panel version for auto-filling student marks into BRACU Connect form fields.",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "sidePanel"
+    ],
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_title": "Open Side Panel"
     },
     "icons": {
-      "16": "icons/auto_mark.png",
-      "48": "icons/auto_mark.png",
-      "128": "icons/auto_mark.png"
-    },
-    "default_title": "Auto Mark Entry"
-  },
-  "icons": {
-    "16": "icons/auto_mark.png",
-    "48": "icons/auto_mark.png",
-    "128": "icons/auto_mark.png"
-  },
-  "background": {
-    "service_worker": "background.js"
-  },
-  "side_panel": {
-    "default_path": "sidepanel.html"
-  },
-  "minimum_chrome_version": "114"
+        "16": "icons/auto_mark.png",
+        "48": "icons/auto_mark.png",
+        "128": "icons/auto_mark.png"
+    }
 }
