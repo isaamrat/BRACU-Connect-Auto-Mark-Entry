@@ -4,7 +4,11 @@ const btnText = document.getElementById('btnText');
 const fileInput = document.getElementById('fileInput');
 
 function hideFillButton() { fillBtn.style.display = 'none'; }
-function showFillButton() { fillBtn.style.display = ''; } // reset to default
+function showFillButton() {
+  fillBtn.style.display = 'flex';
+  btnProgress.style.width = '0%';
+  btnText.textContent = 'Fill Marks';
+}
 
 
 const fileSuccess = document.getElementById("fileSuccess");
@@ -13,8 +17,11 @@ const fileUploadText = document.getElementById("fileUploadText");
 const rawMarkChip = document.getElementById('rawMarkChip');
 const roundedMarkChip = document.getElementById('roundedMarkChip');
 const markTypeContainer = document.getElementById('markTypeContainer');
+const configControls = document.getElementById('configControls');
+const sheetSelect = document.getElementById('sheetSelect');
 
 let studentData = [];
+let currentWorkbook = null;
 let isProcessing = false;
 let selectedMarkIndex = 0;
 
@@ -22,12 +29,16 @@ rawMarkChip.addEventListener('click', () => {
   selectedMarkIndex = 0;
   rawMarkChip.classList.add('active');
   roundedMarkChip.classList.remove('active');
+  showFillButton();
+  clearUnmatchedStudents();
 });
 
 roundedMarkChip.addEventListener('click', () => {
   selectedMarkIndex = 1;
   roundedMarkChip.classList.add('active');
   rawMarkChip.classList.remove('active');
+  showFillButton();
+  clearUnmatchedStudents();
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -74,11 +85,11 @@ function showPageVerificationError() {
 }
 
 function showMarkTypeContainer() {
-  markTypeContainer.style.display = 'block';
+  if (configControls) configControls.style.display = 'flex';
 }
 
 function hideMarkTypeContainer() {
-  markTypeContainer.style.display = 'none';
+  if (configControls) configControls.style.display = 'none';
 }
 
 // Listen for progress updates
@@ -109,21 +120,24 @@ fileInput.addEventListener("change", (e) => {
   reader.onload = (evt) => {
     try {
       const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
+      currentWorkbook = XLSX.read(data, { type: "array" });
 
-      const sheetName = "Final GradeSheet";
-      const worksheet = workbook.Sheets[sheetName];
+      // Populate sheet dropdown
+      sheetSelect.innerHTML = '';
+      currentWorkbook.SheetNames.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        sheetSelect.appendChild(option);
+      });
 
-      if (!worksheet) {
-        showMessage("Sheet 'Final GradeSheet' not found in the Excel file. Please ensure your Excel file contains the correct sheet name.", "error");
-        resetFileUploadDisplay();
-        hideFileSuccess();
-        hideMarkTypeContainer();
-        return;
-      }
+      // Default to "Final GradeSheet" if it exists, otherwise first sheet
+      const defaultSheet = currentWorkbook.SheetNames.includes("Final GradeSheet")
+        ? "Final GradeSheet"
+        : currentWorkbook.SheetNames[0];
 
-      studentData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      studentData.shift();
+      sheetSelect.value = defaultSheet;
+      updateStudentDataFromSelectedSheet();
 
       showMessage(`Excel file loaded successfully`, "success");
       showFileSuccess();
@@ -156,7 +170,88 @@ function updateFileUploadDisplay(fileName) {
 function resetFileUploadDisplay() {
   fileUploadDisplay.classList.remove('has-file');
   fileUploadText.innerHTML = `<span class="file-upload-icon">📁</span><span>Choose Grade Sheet Excel file</span>`;
+  if (configControls) configControls.style.display = 'none';
+  currentWorkbook = null;
+  studentData = [];
 }
+
+function updateStudentDataFromSelectedSheet() {
+  if (!currentWorkbook) return;
+  const sheetName = sheetSelect.value;
+  const worksheet = currentWorkbook.Sheets[sheetName];
+  if (worksheet) {
+    studentData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    const validation = validateSheetRequirements(studentData);
+    if (!validation.isValid) {
+      disableFillButton(true, `Missing required column: <strong>${validation.missingField}</strong>`);
+    } else {
+      disableFillButton(false);
+      showFillButton();
+    }
+  }
+}
+
+function validateSheetRequirements(data) {
+  if (!data || data.length === 0) return { isValid: false, missingField: "Empty sheet" };
+
+  let headerRowIndex = -1;
+  let hasId = false;
+
+  // Search for ID # column
+  for (let r = 0; r < Math.min(data.length, 20); r++) {
+    const row = data[r];
+    if (!row) continue;
+    for (let c = 0; c < row.length; c++) {
+      if (row[c] && String(row[c]).trim().toLowerCase().includes('id #')) {
+        headerRowIndex = r;
+        hasId = true;
+        break;
+      }
+    }
+    if (hasId) break;
+  }
+
+  if (!hasId) return { isValid: false, missingField: "ID #" };
+
+  // Check for Total column in same row
+  const headerRow = data[headerRowIndex];
+  let hasTotal = false;
+  for (let i = 0; i < headerRow.length; i++) {
+    const h = headerRow[i];
+    if (h && String(h).trim().toLowerCase() === 'total') {
+      hasTotal = true;
+      break;
+    }
+  }
+
+  if (!hasTotal) return { isValid: false, missingField: "Total" };
+
+  return { isValid: true };
+}
+
+function disableFillButton(disabled, message = "") {
+  fillBtn.disabled = disabled;
+  fillBtn.style.opacity = disabled ? "0.5" : "1";
+  fillBtn.style.cursor = disabled ? "not-allowed" : "pointer";
+
+  const alert = document.getElementById('validationAlert');
+  if (alert) {
+    if (disabled && message) {
+      alert.querySelector('.alert-message').innerHTML = message;
+      alert.style.display = 'flex';
+    } else {
+      alert.style.display = 'none';
+    }
+  }
+}
+
+sheetSelect.addEventListener("change", () => {
+  updateStudentDataFromSelectedSheet();
+  showFillButton();
+  clearUnmatchedStudents();
+  showMessage(`Sheet switched to "${sheetSelect.value}"`, "info");
+});
 
 
 fillBtn.addEventListener("click", async () => {
@@ -281,15 +376,18 @@ function displayUnmatchedStudents(unmatchedStudents, pageOnlyStudents) {
   const pageExtras = pageOnlyStudents || [];
 
   if (excelMisses.length === 0 && pageExtras.length === 0) {
+    container.classList.add('success');
+    container.style.display = 'block';
     container.innerHTML = `
-      <div class="success-message">
+      <div class="result-box success">
         <div class="success-icon">✓</div>
         <div class="success-text">All students matched successfully!</div>
       </div>
     `;
-    container.style.display = 'block';
     return;
   }
+
+  container.classList.remove('success');
 
   function table(rows, cols) {
     let thead = cols.map(c => `<th>${c}</th>`).join('');
@@ -449,9 +547,9 @@ function createUnmatchedContainer() {
     
     .unmatched-container {
       margin-top: 8px;
-      padding: 20px;
+      padding: 16px;
       border: 1px solid #fca5a5;
-      border-radius: 16px;
+      border-radius: 12px;
       background: linear-gradient(135deg, #fef2f2, #ffffff);
       display: none;
       max-height: 400px;
@@ -459,6 +557,13 @@ function createUnmatchedContainer() {
       width: 100%;
       box-sizing: border-box;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .unmatched-container.success {
+      border-color: #a7f3d0;
+      background: linear-gradient(135deg, #ecfdf5, #ffffff);
+      box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
     }
     
     .unmatched-header {
@@ -467,7 +572,6 @@ function createUnmatchedContainer() {
       gap: 6px;
       margin-bottom: 8px;
       padding-bottom: 6px;
-      border-bottom: 1px solid #fecaca;
     }
     
     .unmatched-header > div:first-child {
@@ -504,13 +608,10 @@ function createUnmatchedContainer() {
       font-style: italic;
     }
     
-    .success-message {
+    .result-box {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 16px;
-      background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-      border-radius: 12px;
       color: #065f46;
     }
     

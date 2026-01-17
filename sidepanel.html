@@ -190,8 +190,9 @@
       border-radius: 10px;
       /*  12px */
       width: 100%;
+      margin-top: 10px;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.2s ease-in-out;
       position: relative;
       overflow: hidden;
       text-transform: none;
@@ -207,14 +208,35 @@
       left: 0;
       height: 100%;
       width: 0%;
-      background: rgba(255, 255, 255, 0.25);
-      transition: width 0.3s ease;
+      background-color: #10b981;
+      background-image: linear-gradient(45deg,
+          rgba(255, 255, 255, 0.15) 25%,
+          transparent 25%,
+          transparent 50%,
+          rgba(255, 255, 255, 0.15) 50%,
+          rgba(255, 255, 255, 0.15) 75%,
+          transparent 75%,
+          transparent);
+      background-size: 1rem 1rem;
+      animation: progress-stripes 1s linear infinite;
+      transition: width 0.3s ease-out;
       z-index: 1;
+    }
+
+    @keyframes progress-stripes {
+      from {
+        background-position: 1rem 0;
+      }
+
+      to {
+        background-position: 0 0;
+      }
     }
 
     .btn-text {
       position: relative;
       z-index: 2;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     }
 
     .btn-primary::before {
@@ -230,7 +252,6 @@
 
     .btn-primary:hover {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      transform: translateY(-2px);
       box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
     }
 
@@ -239,7 +260,6 @@
     }
 
     .btn-primary:active {
-      transform: translateY(0);
       box-shadow: 0 5px 10px rgba(59, 130, 246, 0.4);
     }
 
@@ -268,35 +288,9 @@
       }
     }
 
-    /* Loading animation */
-    .loading {
-      position: relative;
-    }
-
-    .loading::after {
-      content: '';
-      position: absolute;
-      width: 18px;
-      /*  20px */
-      height: 18px;
-      margin: auto;
-      border: 2px solid transparent;
-      border-top: 2px solid #ffffff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    @keyframes spin {
-      0% {
-        transform: translate(-50%, -50%) rotate(0deg);
-      }
-
-      100% {
-        transform: translate(-50%, -50%) rotate(360deg);
-      }
+    /* Loading state */
+    .loading .btn-text {
+      opacity: 0.9;
     }
 
     /* Success indicator */
@@ -321,6 +315,92 @@
       transform: translateY(0);
     }
 
+    .sheet-selection-container {
+      margin-top: 18px;
+      display: none;
+      flex: 1;
+    }
+
+    .config-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      align-items: flex-end;
+    }
+
+    .config-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .select-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .form-select {
+      width: 100%;
+      height: 34px;
+      padding: 0 10px;
+      padding-right: 30px;
+      font-size: 13px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background-color: #f8fafc;
+      color: #1e293b;
+      appearance: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .form-select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .select-arrow {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #64748b;
+      font-size: 10px;
+    }
+
+    /* Small chips for compact layout */
+    .chip-group.compact {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #f8fafc;
+      padding: 4px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    .chip.compact {
+      padding: 0 10px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border-radius: 8px;
+      flex: 1;
+      white-space: nowrap;
+    }
+
     .success-indicator::before {
       content: '✓';
       display: inline-block;
@@ -336,6 +416,38 @@
       font-size: 10px;
       /*  12px */
       font-weight: bold;
+    }
+
+    .validation-alert {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      color: #991b1b;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .validation-alert .alert-icon {
+      font-size: 16px;
+      color: #dc2626;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Page verification styles */
@@ -508,37 +620,48 @@
         <div class="success-indicator" id="fileSuccess">
           File loaded successfully
         </div>
-      </div>
-
-      <div class="mark-type-container" id="markTypeContainer">
-        <label class="form-label">Mark To Entry</label>
-        <div class="chip-group">
-          <div class="chip active" id="rawMarkChip" data-index="0">
-            Raw Mark
+        <div class="config-row" id="configControls" style="display: none;">
+          <div class="config-group">
+            <label class="form-label" style="margin-bottom:0">Sheet</label>
+            <div class="select-wrapper">
+              <select class="form-select" id="sheetSelect">
+                <option value="" disabled selected>Select</option>
+              </select>
+              <div class="select-arrow">▼</div>
+            </div>
           </div>
-          <div class="chip" id="roundedMarkChip" data-index="1">
-            Rounded Mark
+
+          <div class="config-group">
+            <label class="form-label" style="margin-bottom:0">Mark Type</label>
+            <div class="chip-group compact">
+              <div class="chip compact active" id="rawMarkChip" data-index="0">Raw</div>
+              <div class="chip compact" id="roundedMarkChip" data-index="1">Rounded</div>
+            </div>
           </div>
         </div>
+
+        <button class="btn-primary" id="fillBtn">
+          <div class="btn-progress" id="btnProgress"></div>
+          <span class="btn-text" id="btnText">Fill Marks</span>
+        </button>
+
+        <div class="validation-alert" id="validationAlert">
+          <span class="alert-icon">⚠</span>
+          <span class="alert-message"></span>
+        </div>
+
+        <div class="footer">
+          <p style="text-align: center;">Developed By Md. Khaliduzzaman Khan Samrat</p>
+        </div>
+
       </div>
-
-      <button class="btn-primary" id="fillBtn">
-        <div class="btn-progress" id="btnProgress"></div>
-        <span class="btn-text" id="btnText">Fill Marks</span>
-      </button>
-
-      <div class="footer">
-        <p>Developed By <span>Md. Khaliduzzaman Khan Samrat</span></p>
-      </div>
-
     </div>
-  </div>
 
-  <!-- Load XLSX library globally -->
-  <script src="libs/xlsx.full.min.js"></script>
+    <!-- Load XLSX library globally -->
+    <script src="libs/xlsx.full.min.js"></script>
 
-  <!-- Load the external popup.js file -->
-  <script src="sidepanel.js"></script>
+    <!-- Load the external popup.js file -->
+    <script src="sidepanel.js"></script>
 </body>
 
 </html>
