@@ -1,3 +1,4 @@
+## Support linux chrome browser
 
 # BRACU Connect Auto Mark Entry - Extension
 
