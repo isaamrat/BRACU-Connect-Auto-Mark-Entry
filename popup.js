@@ -647,10 +647,10 @@ function fillMarksOnPage(data) {
     let fullMark = 100;
     const metaRow = data[headerRowIndex + 1] || [];
     const metaCell = metaRow[totalColumnIndex];
-    if (metaCell != null) {
-      const num = parseFloat(String(metaCell).replace(/[^\d.]/g, ''));
-      if (!isNaN(num) && num > 0) fullMark = num;
-    }
+    // if (metaCell != null) {
+    //   const num = parseFloat(String(metaCell).replace(/[^\d.]/g, ''));
+    //   if (!isNaN(num) && num > 0) fullMark = num;
+    // }
 
     // ---------- Student rows ----------
     const studentDataStartIndex = headerRowIndex + 2;
@@ -919,6 +919,7 @@ function fillMarksOnPage(data) {
     return { unmatchedStudents: [], pageOnlyStudents: [], totalStudents: 0, matchedCount: 0 };
   }
 }
+
 
 
 
